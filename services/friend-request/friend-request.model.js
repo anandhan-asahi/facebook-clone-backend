@@ -1,12 +1,12 @@
 const { Schema, model } = require("mongoose");
 
 const FriendRequestSchema = new Schema({
-	sender_id: { type: Schema.Types.ObjectId, ref: "User" },
-	receiver_id: { type: Schema.Types.ObjectId, ref: "User" },
-	approved: { type: Boolean },
-	approvedAt: {
-		type: Date,
-		default: null,
+	senderId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+	receiverId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+	status: {
+		type: String,
+		enum: ["pending", "accepted", "rejected"],
+		default: "pending",
 	},
 	createdAt: {
 		type: Date,
