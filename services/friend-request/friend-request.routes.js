@@ -7,8 +7,14 @@ const {
 
 const friendRequestRouter = express.Router();
 
-friendRequestRouter.post("/api/friend-request", createFriendRequest);
-friendRequestRouter.put("/api/friend-request/accept/:id", acceptFriendRequest);
-friendRequestRouter.put("/api/friend-request/reject/:id", rejectFriendRequest);
+friendRequestRouter.post("/api/v1/friend-request", createFriendRequest);
+friendRequestRouter.put(
+	"/api/v1/friend-request/accept/:id",
+	acceptFriendRequest
+);
+friendRequestRouter.put(
+	"/api/v1/friend-request/reject/:id",
+	rejectFriendRequest
+);
 
 module.exports = friendRequestRouter;

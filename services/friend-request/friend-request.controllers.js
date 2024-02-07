@@ -1,19 +1,24 @@
 const FriendRequest = require("./friend-request.model");
 const User = require("../user/user.model");
 const mongoose = require("mongoose");
-const { ACCEPTED, REJECTED } = require("../../utils/constants");
+const {
+	ACCEPTED,
+	REJECTED,
+	INVALID_ID,
+	USER_NOT_FOUND,
+} = require("../../utils/constants");
 
 const createFriendRequest = async (req, res) => {
 	try {
-		const { senderId, receiverId } = req.body;
+		const senderId = req.user._id;
+		const { receiverId } = req.body;
 		if (
 			!mongoose.Types.ObjectId.isValid(senderId) ||
 			!mongoose.Types.ObjectId.isValid(receiverId)
 		) {
 			return res.status(400).json({
 				success: false,
-				message: "Invalid user ID",
-				error: "Invalid user ID",
+				message: INVALID_ID,
 			});
 		}
 		const [existingSender, existingReceiver] = await Promise.all([
@@ -23,11 +28,13 @@ const createFriendRequest = async (req, res) => {
 		if (!existingSender || !existingReceiver) {
 			return res.status(404).json({
 				success: false,
-				message: "User not found",
-				error: "User not found",
+				message: USER_NOT_FOUND,
 			});
 		}
-		const createdFriendRequest = await FriendRequest.create(req.body);
+		const createdFriendRequest = await FriendRequest.create({
+			...req.body,
+			senderId,
+		});
 		res.status(201).json({
 			success: true,
 			data: createdFriendRequest,

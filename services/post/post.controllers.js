@@ -1,10 +1,13 @@
 const Post = require("./post.model");
+const PostLike = require("../post-like/post-like.model");
+const PostComment = require("../post-comment/post-comment.model");
 const mongoose = require("mongoose");
 const cloudinary = require("../../utils/cloudinary");
+const { INVALID_ID, IMAGE_NOT_FOUND } = require("../../utils/constants");
 
 const createPost = async (req, res) => {
 	try {
-		const postData = req.body;
+		const postData = { ...req.body, userId: req.user._id };
 		const createdPost = await Post.create(postData);
 		if (!createdPost) {
 			return res.status(404).json({
@@ -34,8 +37,7 @@ const updatePost = async (req, res) => {
 		if (!mongoose.Types.ObjectId.isValid(postId)) {
 			return res.status(400).json({
 				success: false,
-				message: "Invalid post ID",
-				error: "Invalid post ID",
+				message: INVALID_ID,
 			});
 		}
 
@@ -66,11 +68,10 @@ const updatePost = async (req, res) => {
 
 const uploadImage = async (req, res) => {
 	try {
-		console.log(req.file);
 		if (!req.file) {
 			return res
 				.status(400)
-				.json({ success: false, message: "No image uploaded" });
+				.json({ success: false, message: IMAGE_NOT_FOUND });
 		}
 
 		const result = await cloudinary.uploader.upload(req.file.path, {
@@ -89,18 +90,24 @@ const uploadImage = async (req, res) => {
 const getPost = async (req, res) => {
 	try {
 		const postId = req.params.id;
-
 		if (!mongoose.Types.ObjectId.isValid(postId)) {
 			return res.status(400).json({
 				success: false,
-				message: "Invalid post ID",
-				error: "Invalid post ID",
+				message: INVALID_ID,
 			});
 		}
+		const [existingPost, likeCount, comments] = await Promise.all([
+			Post.findById(postId),
+			PostLike.countDocuments({ postId }),
+			PostComment.find({ postId })
+				.select("_id description createdAt")
+				.populate({
+					path: "userId",
+					select: "firstName lastName",
+				}),
+		]);
 
-		const post = await Post.findById(postId);
-
-		if (!post) {
+		if (!existingPost) {
 			return res.status(404).json({
 				success: false,
 				message: "Post not found",
@@ -108,9 +115,18 @@ const getPost = async (req, res) => {
 			});
 		}
 
+		const postData = {
+			_id: existingPost._id,
+			userId: existingPost.userId,
+			description: existingPost.description,
+			...(existingPost.imageUrl && { imageUrl: existingPost.imageUrl }),
+			likeCount,
+			comments,
+		};
+
 		res.status(200).json({
 			success: true,
-			data: post,
+			data: postData,
 		});
 	} catch (error) {
 		res.status(500).json({
@@ -128,8 +144,7 @@ const deletePost = async (req, res) => {
 		if (!mongoose.Types.ObjectId.isValid(postId)) {
 			return res.status(400).json({
 				success: false,
-				message: "Invalid post ID",
-				error: "Invalid post ID",
+				message: INVALID_ID,
 			});
 		}
 		const deletedPost = await Post.findByIdAndUpdate(

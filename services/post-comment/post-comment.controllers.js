@@ -1,10 +1,10 @@
-const PostLike = require("./post-like.model");
+const PostComment = require("./post-comment.model");
 const Post = require("../post/post.model");
 const User = require("../user/user.model");
 const mongoose = require("mongoose");
 const { INVALID_ID, USER_NOT_FOUND } = require("../../utils/constants");
 
-const createPostLike = async (req, res) => {
+const createPostComment = async (req, res) => {
 	try {
 		const postId = req.params.id;
 		const userId = req.user._id;
@@ -33,14 +33,14 @@ const createPostLike = async (req, res) => {
 				error: "Post not found",
 			});
 		}
-		const createdPostLike = await PostLike.create({
+		const createdPostComment = await PostComment.create({
 			...req.body,
 			userId,
 			postId,
 		});
 		res.status(201).json({
 			success: true,
-			data: createdPostLike,
+			data: createdPostComment,
 		});
 	} catch (error) {
 		res.status(500).json({
@@ -51,4 +51,4 @@ const createPostLike = async (req, res) => {
 	}
 };
 
-module.exports = { createPostLike };
+module.exports = { createPostComment };

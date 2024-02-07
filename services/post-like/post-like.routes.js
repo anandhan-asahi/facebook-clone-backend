@@ -1,8 +1,8 @@
 const express = require("express");
-const { getUser, createUser } = require("./post-like.controllers");
+const { createPostLike } = require("./post-like.controllers");
 
-const userRouter = express.Router();
+const postLikeRouter = express.Router();
 
-userRouter.post("/api/user", createUser);
+postLikeRouter.post("/api/v1/post/like/:id", createPostLike);
 
-module.exports = userRouter;
+module.exports = postLikeRouter;

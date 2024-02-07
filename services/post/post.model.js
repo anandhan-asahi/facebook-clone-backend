@@ -5,7 +5,6 @@ const PostSchema = new Schema({
 	description: { type: String },
 	deleted: { type: Boolean, default: false },
 	imageUrl: { type: String },
-	likeCount: { type: Number },
 	createdAt: {
 		type: Date,
 		default: Date.now,
