@@ -38,7 +38,7 @@ const getUser = async (req, res) => {
 		}
 		const [existingUser, existingUserPosts] = await Promise.all([
 			User.findById(_id),
-			Post.find({ userId: _id }),
+			Post.find({ userId: _id, deleted: false }),
 		]);
 		if (!existingUser) {
 			return res.status(404).json({
