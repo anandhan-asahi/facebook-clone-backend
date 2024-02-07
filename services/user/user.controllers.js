@@ -2,6 +2,7 @@ const { User, validate } = require("./user.model");
 const Post = require("../post/post.model");
 const FriendRequest = require("../friend-request/friend-request.model");
 const FollowRequest = require("../follow-requests/follow-request.model");
+const LoginDetail = require("../login-detail/login-detail.model");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
@@ -145,6 +146,17 @@ const login = async (req, res) => {
 			});
 
 		const authToken = existingUser.generateAuthToken();
+		await LoginDetail.findByIdAndUpdate(
+			existingUser._id,
+			{
+				lastLogin: Date.now(),
+				deviceToken: req.body?.deviceToken ? req.body?.deviceToken : "",
+			},
+			{
+				upsert: true,
+			}
+		);
+
 		res.status(200).json({
 			success: true,
 			data: { auth: { token: authToken } },
@@ -162,6 +174,7 @@ const validateLoginRequest = (user) => {
 	const schema = Joi.object({
 		email: Joi.string().email().required(),
 		password: Joi.string().required(),
+		deviceToken: Joi.string(),
 	});
 	return schema.validate(user);
 };

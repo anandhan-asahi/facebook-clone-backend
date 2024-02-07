@@ -23,23 +23,30 @@ const createFriendRequest = async (req, res) => {
 				message: INVALID_ID,
 			});
 		}
-		const [existingSender, existingReceiver] = await Promise.all([
-			User.findById(senderId),
-			User.findById(receiverId),
-		]);
+		const [existingSender, existingReceiver, existingFriendRequest] =
+			await Promise.all([
+				User.findById(senderId),
+				User.findById(receiverId),
+				FriendRequest.findOne({ senderId, receiverId }),
+			]);
 		if (!existingSender || !existingReceiver) {
 			return res.status(404).json({
 				success: false,
 				message: USER_NOT_FOUND,
 			});
 		}
-		const createdFriendRequest = await FriendRequest.create({
-			...req.body,
-			senderId,
-		});
+		let createdFriendRequest;
+		if (!existingFriendRequest) {
+			createdFriendRequest = await FriendRequest.create({
+				...req.body,
+				senderId,
+			});
+		}
 		res.status(201).json({
 			success: true,
-			data: createdFriendRequest,
+			data: existingFriendRequest
+				? existingFriendRequest
+				: createdFriendRequest,
 		});
 	} catch (error) {
 		res.status(500).json({
