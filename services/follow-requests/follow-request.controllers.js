@@ -1,7 +1,11 @@
 const FollowRequest = require("./follow-request.model");
-const User = require("../user/user.model");
+const { User } = require("../user/user.model");
 const mongoose = require("mongoose");
-const { INVALID_ID, USER_NOT_FOUND } = require("../../utils/constants");
+const {
+	INVALID_ID,
+	USER_NOT_FOUND,
+	UNFOLLOWED_SUCCESS,
+} = require("../../utils/constants");
 
 const createFollowRequest = async (req, res) => {
 	try {
@@ -16,23 +20,30 @@ const createFollowRequest = async (req, res) => {
 				message: INVALID_ID,
 			});
 		}
-		const [existingFollower, existingFollowingUser] = await Promise.all([
-			User.findById(followerId),
-			User.findById(followingId),
-		]);
+		const [existingFollower, existingFollowingUser, existingFollowRequest] =
+			await Promise.all([
+				User.findById(followerId),
+				User.findById(followingId),
+				FollowRequest.findOne({ followerId, followingId }),
+			]);
 		if (!existingFollower || !existingFollowingUser) {
 			return res.status(404).json({
 				success: false,
 				message: USER_NOT_FOUND,
 			});
 		}
-		const createdFollowRequest = await FollowRequest.create({
-			...req.body,
-			followerId,
-		});
+		let createdFollowRequest;
+		if (!existingFollowRequest) {
+			createdFollowRequest = await FollowRequest.create({
+				...req.body,
+				followerId,
+			});
+		}
 		res.status(201).json({
 			success: true,
-			data: createdFollowRequest,
+			data: existingFollowRequest
+				? existingFollowRequest
+				: createdFollowRequest,
 		});
 	} catch (error) {
 		res.status(500).json({
@@ -69,7 +80,7 @@ const unFollowRequest = async (req, res) => {
 		await FollowRequest.deleteOne({ followerId, followingId });
 		res.status(201).json({
 			success: true,
-			message: "Unfollowed successfully",
+			message: UNFOLLOWED_SUCCESS,
 		});
 	} catch (error) {
 		res.status(500).json({

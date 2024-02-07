@@ -1,6 +1,6 @@
 const PostLike = require("./post-like.model");
 const Post = require("../post/post.model");
-const User = require("../user/user.model");
+const { User } = require("../user/user.model");
 const mongoose = require("mongoose");
 const { INVALID_ID, USER_NOT_FOUND } = require("../../utils/constants");
 
@@ -17,10 +17,12 @@ const createPostLike = async (req, res) => {
 				message: INVALID_ID,
 			});
 		}
-		const [existingUser, existingUserPost] = await Promise.all([
-			User.findById(userId),
-			Post.findById(postId),
-		]);
+		const [existingUser, existingUserPost, existingPostLike] =
+			await Promise.all([
+				User.findById(userId),
+				Post.findById(postId),
+				PostLike.findOne({ userId, postId }),
+			]);
 		if (!existingUser) {
 			return res.status(404).json({
 				success: false,
@@ -29,18 +31,19 @@ const createPostLike = async (req, res) => {
 		} else if (!existingUserPost) {
 			return res.status(404).json({
 				success: false,
-				message: "Post not found",
-				error: "Post not found",
+				message: POST_NOT_FOUND,
 			});
 		}
-		const createdPostLike = await PostLike.create({
-			...req.body,
-			userId,
-			postId,
-		});
+		let createdPostLike;
+		if (!existingPostLike) {
+			createdPostLike = await PostLike.create({
+				userId,
+				postId,
+			});
+		}
 		res.status(201).json({
 			success: true,
-			data: createdPostLike,
+			data: existingPostLike ? existingPostLike : createdPostLike,
 		});
 	} catch (error) {
 		res.status(500).json({

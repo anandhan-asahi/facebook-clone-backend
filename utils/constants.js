@@ -9,4 +9,9 @@ module.exports = {
 	EMAIL_ALREADY_EXISTS: "Email already exists",
 	IMAGE_UPLOAD_FAILED: "Image upload failed",
 	IMAGE_NOT_FOUND: "Image not found",
+	FRIEND_REQUEST_ACCEPTED: "Friend request accepted",
+	FRIEND_REQUEST_REJECTED: "Friend request rejected",
+	POST_NOT_FOUND: "Post not found",
+	POST_DELETED_SUCCESS: "Post deleted successfully",
+	UNFOLLOWED_SUCCESS: "Unfollowed successfully",
 };

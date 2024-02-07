@@ -1,5 +1,7 @@
 const { User, validate } = require("./user.model");
 const Post = require("../post/post.model");
+const FriendRequest = require("../friend-request/friend-request.model");
+const FollowRequest = require("../follow-requests/follow-request.model");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
@@ -10,6 +12,7 @@ const {
 	EMAIL_ALREADY_EXISTS,
 	USER_CREATION_FAILED,
 	USER_CREATION_SUCCESS,
+	ACCEPTED,
 } = require("../../utils/constants");
 
 const createUser = async (req, res) => {
@@ -56,16 +59,32 @@ const createUser = async (req, res) => {
 const getUser = async (req, res) => {
 	try {
 		const _id = req.params.id;
+		const userId = req.user._id;
+
 		if (!mongoose.Types.ObjectId.isValid(_id)) {
 			return res.status(400).json({
 				success: false,
 				message: INVALID_ID,
 			});
 		}
-		const [existingUser, existingUserPosts] = await Promise.all([
+		const [
+			existingUser,
+			existingUserPosts,
+			existingFriends1,
+			existingFriends2,
+			existingFollowersCount,
+			existingFollowingUsersCount,
+			existingFollowerData,
+		] = await Promise.all([
 			User.findById(_id),
 			Post.find({ userId: _id, deleted: false }),
+			FriendRequest.find({ senderId: _id, status: ACCEPTED }),
+			FriendRequest.find({ receiverId: _id, status: ACCEPTED }),
+			FollowRequest.countDocuments({ followingId: _id }),
+			FollowRequest.countDocuments({ followerId: _id }),
+			FollowRequest.findOne({ followerId: userId, followingId: _id }),
 		]);
+
 		if (!existingUser) {
 			return res.status(404).json({
 				success: false,
@@ -76,7 +95,15 @@ const getUser = async (req, res) => {
 			_id: existingUser._id,
 			name: `${existingUser.firstName} ${existingUser.lastName}`,
 			email: existingUser.email,
-			...(existingUser.isPrivate && { posts: existingUserPosts }),
+			followersCount: existingFollowersCount,
+			followingCount: existingFollowingUsersCount,
+			...(existingUser.isPrivate
+				? existingFriends1.length || existingFriends2.length
+					? { posts: existingUserPosts }
+					: {}
+				: existingFollowerData
+				? { posts: existingUserPosts }
+				: {}),
 		};
 		res.status(200).json({
 			success: true,

@@ -3,7 +3,12 @@ const PostLike = require("../post-like/post-like.model");
 const PostComment = require("../post-comment/post-comment.model");
 const mongoose = require("mongoose");
 const cloudinary = require("../../utils/cloudinary");
-const { INVALID_ID, IMAGE_NOT_FOUND } = require("../../utils/constants");
+const {
+	INVALID_ID,
+	IMAGE_NOT_FOUND,
+	POST_NOT_FOUND,
+	POST_DELETED_SUCCESS,
+} = require("../../utils/constants");
 
 const createPost = async (req, res) => {
 	try {
@@ -48,8 +53,7 @@ const updatePost = async (req, res) => {
 		if (!updatedPost) {
 			return res.status(404).json({
 				success: false,
-				message: "Post not found",
-				error: "Post not found",
+				message: POST_NOT_FOUND,
 			});
 		}
 
@@ -110,8 +114,7 @@ const getPost = async (req, res) => {
 		if (!existingPost) {
 			return res.status(404).json({
 				success: false,
-				message: "Post not found",
-				error: "Post not found",
+				message: POST_NOT_FOUND,
 			});
 		}
 
@@ -158,14 +161,13 @@ const deletePost = async (req, res) => {
 		if (!deletedPost) {
 			return res.status(404).json({
 				success: false,
-				message: "Post not found",
-				error: "Post not found",
+				message: POST_NOT_FOUND,
 			});
 		}
 
 		res.status(200).json({
 			success: true,
-			message: "Post deleted successfully",
+			message: POST_DELETED_SUCCESS,
 		});
 	} catch (error) {
 		res.status(500).json({

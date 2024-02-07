@@ -1,11 +1,13 @@
 const FriendRequest = require("./friend-request.model");
-const User = require("../user/user.model");
+const { User } = require("../user/user.model");
 const mongoose = require("mongoose");
 const {
 	ACCEPTED,
 	REJECTED,
 	INVALID_ID,
 	USER_NOT_FOUND,
+	FRIEND_REQUEST_ACCEPTED,
+	FRIEND_REQUEST_REJECTED,
 } = require("../../utils/constants");
 
 const createFriendRequest = async (req, res) => {
@@ -66,7 +68,7 @@ const acceptFriendRequest = async (req, res) => {
 
 		res.status(200).json({
 			success: true,
-			message: "Friend request status updated to approved",
+			message: FRIEND_REQUEST_ACCEPTED,
 			data: updatedRequest,
 		});
 	} catch (error) {
@@ -97,7 +99,7 @@ const rejectFriendRequest = async (req, res) => {
 
 		res.status(200).json({
 			success: true,
-			message: "Friend request status updated to rejected",
+			message: FRIEND_REQUEST_REJECTED,
 			data: updatedRequest,
 		});
 	} catch (error) {
