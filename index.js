@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const database = require("./config/database");
-require("dotenv").config();
+require("dotenv").config({ path: "./config.env" });
 const userRouter = require("./services/user/user.routes");
 const postRouter = require("./services/post/post.routes");
 const followRequestRouter = require("./services/follow-requests/follow-request.routes");
@@ -10,7 +10,7 @@ const postLikeRouter = require("./services/post-like/post-like.routes");
 const postCommentRouter = require("./services/post-comment/post-comment.routes");
 const authenticateToken = require("./middlewares/auth");
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cors());
 database();

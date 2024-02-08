@@ -10,24 +10,18 @@ const authenticateToken = (req, res, next) => {
 		});
 	}
 
-	jwt.verify(
-		token,
-		"lvBwD84XsPdpi_MaJzZwko7kWhYoL6J1pToIy8f2s5IfngUSbmTwXrr5RsB6ps984L_8qhZrPxBUhwcmVPf4ew",
-		(err, user) => {
-			if (err) {
-				if (err.name === "TokenExpiredError") {
-					return res
-						.status(401)
-						.json({ success: false, error: "Token expired" });
-				}
+	jwt.verify(token, process.env.JWTSECRETKEY, (err, user) => {
+		if (err) {
+			if (err.name === "TokenExpiredError") {
 				return res
-					.status(403)
-					.json({ success: false, error: "Forbidden" });
+					.status(401)
+					.json({ success: false, error: "Token expired" });
 			}
-			req.user = user;
-			next();
+			return res.status(403).json({ success: false, error: "Forbidden" });
 		}
-	);
+		req.user = user;
+		next();
+	});
 };
 
 module.exports = authenticateToken;

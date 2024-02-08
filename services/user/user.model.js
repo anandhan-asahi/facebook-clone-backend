@@ -1,7 +1,6 @@
 const { Schema, model } = require("mongoose");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
-require("dotenv").config();
 
 const UsersSchema = new Schema({
 	firstName: { type: String, maxlength: 50, required: true },
@@ -18,11 +17,9 @@ const UsersSchema = new Schema({
 });
 
 UsersSchema.methods.generateAuthToken = function () {
-	const token = jwt.sign(
-		{ _id: this._id },
-		"lvBwD84XsPdpi_MaJzZwko7kWhYoL6J1pToIy8f2s5IfngUSbmTwXrr5RsB6ps984L_8qhZrPxBUhwcmVPf4ew",
-		{ expiresIn: "24h" }
-	);
+	const token = jwt.sign({ _id: this._id }, process.env.JWTSECRETKEY, {
+		expiresIn: "24h",
+	});
 	return token;
 };
 
